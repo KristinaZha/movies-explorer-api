@@ -58,7 +58,7 @@ const createMovie = (req, res, next) => {
 
 const deleteMovie = (req, res, next) => {
   Movie.findById(req.params.id)
-    .orFail(() => next(new Error404('Нет фильма по заданному id')))
+    .orFail(new Error404('Нет фильма по заданному id'))
     .then((movie) => {
       if (!movie.owner.equals(req.user._id)) {
         next(new Error403('Вы пытаетесь удалить чужой фильм'));
@@ -69,8 +69,8 @@ const deleteMovie = (req, res, next) => {
       }
     })
     .catch((err) => {
-      if (err.kind === 'ObjectId') {
-        next(new Error404('Переданы некорректные данные при удалении фильма.'));
+      if (err.name === 'CastError') {
+        next(new Error400('Переданы некорректные данные при удалении фильма.'));
       } else {
         next(err);
       }

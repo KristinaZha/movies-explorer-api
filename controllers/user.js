@@ -39,6 +39,23 @@ const createUser = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
+        return next(new Error400('Проверьте данные'));
+      }
+      if (err.code === 11000) {
+        return next(new Error409('Пользователь уже существует'));
+      }
+      return next(err);
+    });
+};
+
+// обновляет информацию о пользователе (email и имя)PATCH /users/me
+const updateUser = (req, res, next) => {
+  const { name, email } = req.body;
+  User.findByIdAndUpdate(req.user._id, { name, email }, { new: true, runValidators: true })
+    .orFail(new Error404('Пользователь по указанному _id не найден'))
+    .then((user) => res.send(user))
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
         return next(new Error401('Проверьте данные'));
       }
       if (err.code === 11000) {
@@ -52,27 +69,11 @@ const createUser = (req, res, next) => {
 const getCurrentUser = (req, res, next) => {
   User
     .findById(req.user._id)
-    .orFail(() => next(new Error404('Пользователь не найден')))
+    .orFail(new Error404('Пользователь не найден'))
     .then((user) => {
       res.send(user);
     })
     .catch(next);
-};
-
-// обновляет информацию о пользователе (email и имя)PATCH /users/me
-const updateUser = (req, res, next) => {
-  const { name, email } = req.body;
-  User.findByIdAndUpdate(req.user._id, { name, email }, { new: true, runValidators: true })
-    .orFail(() => next(new Error404('Пользователь по указанному _id не найден')))
-    .then((user) => res.send(user))
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        next(new Error400('Произошла ошибка'));
-      } else if (err.kind === 'ObjectId') {
-        next(new Error409('Пользователь уже существует'));
-      }
-      next(err);
-    });
 };
 
 module.exports = {
