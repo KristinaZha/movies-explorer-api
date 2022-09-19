@@ -1,2 +1,3 @@
 # movies-explorer-api
-https://diplomKristina.nomoredomains.sbs
+доменное имя
+https://api.diplomKristina.nomoredomains.sbs

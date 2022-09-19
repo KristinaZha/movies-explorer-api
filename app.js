@@ -5,11 +5,11 @@ const helmet = require('helmet');
 const cors = require('cors');
 const { errors } = require('celebrate');
 
-const { dataMovies, PORT } = require('./config/config');
+const { dataMovies, limiter, PORT } = require('./config/config');
 const { requestLogger, errorLogger } = require('./middlewares/logger');
 const routes = require('./routes/index');
 
-// const serverError = require('./middlewares/serverError');
+const serverError = require('./middlewares/serverError');
 
 mongoose.connect(dataMovies);
 
@@ -18,6 +18,8 @@ const app = express();
 app.use(express.json());
 
 app.use(requestLogger);
+
+app.use(limiter);
 
 app.use(helmet());
 
@@ -29,7 +31,7 @@ app.use(errorLogger);
 
 app.use(errors());
 
-// app.use(serverError);
+app.use(serverError);
 
 app.listen(PORT, () => {
   console.log(`App listening on port ${PORT}`);
