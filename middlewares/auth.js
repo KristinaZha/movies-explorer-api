@@ -1,7 +1,6 @@
 const jwt = require('jsonwebtoken');
 
 const { NODE_ENV, JWT_SECRET } = process.env;
-console.log('NODE_ENV, JWT_SECRET ==>', NODE_ENV, JWT_SECRET);
 const Error401 = require('../errors/Error401');
 
 module.exports = (req, _, next) => {
@@ -20,6 +19,5 @@ module.exports = (req, _, next) => {
   }
 
   req.user = payload;
-  console.log(req.user._id);
   return next();
 };

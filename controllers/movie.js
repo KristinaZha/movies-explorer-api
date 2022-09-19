@@ -16,9 +16,6 @@ const getMovies = (req, res, next) => {
 
 // создаёт фильм с переданными в теле
 const createMovie = (req, res, next) => {
-  console.log('request.body: ', req.body);
-  console.log('Id пользователя создавшего пост: ', req.user._id);
-
   const {
     country,
     director,
@@ -32,20 +29,6 @@ const createMovie = (req, res, next) => {
     thumbnail,
     movieId,
   } = req.body;
-  if (
-    !country
-    || !director
-    || !duration
-    || !description
-    || !image
-    || !trailerLink
-    || !nameRU
-    || !nameEN
-    || !thumbnail
-    || !movieId
-  ) {
-    throw new Error400('Данные введены не верно');
-  }
   Movie.create({
     country,
     director,
@@ -72,16 +55,26 @@ const createMovie = (req, res, next) => {
 };
 
 // удаляет сохранённый фильм по id DELETE /movies/_id
+
 const deleteMovie = (req, res, next) => {
-  const { id } = req.params;
-  Movie.findById(id).orFail(() => new Error404('Нет фильма по заданному id'))
+  Movie.findById(req.params.id)
+    .orFail(() => next(new Error404('Нет фильма по заданному id')))
     .then((movie) => {
       if (!movie.owner.equals(req.user._id)) {
-        return next(new Error403('Вы пытаетесь удалить фильм другого пользователя'));
+        next(new Error403('Вы пытаетесь удалить чужой фильм'));
+      } else {
+        movie.remove()
+          .then(() => res.send({ message: movie }))
+          .catch(next);
       }
-      return movie.remove().then(() => res.send(movie));
     })
-    .catch(next);
+    .catch((err) => {
+      if (err.kind === 'ObjectId') {
+        next(new Error404('Переданы некорректные данные при удалении фильма.'));
+      } else {
+        next(err);
+      }
+    });
 };
 
 module.exports = {
